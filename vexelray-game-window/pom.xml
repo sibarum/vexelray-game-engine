@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>dev.vexelray.game</groupId>
+        <artifactId>vexelray-game-engine</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>vexelray-game-window</artifactId>
+
+    <description>
+        A game in a window of its own: the world's techniques full-window, and a vexelray-gui overlay (menus, HUD,
+        inventory, the debug panels) drawn over it as the last technique, under the same framework wiring.
+    </description>
+
+    <dependencies>
+        <dependency>
+            <groupId>dev.vexelray.game</groupId>
+            <artifactId>vexelray-game-render</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dev.vexelray</groupId>
+            <artifactId>vexelray-technique-canvas</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dev.vexelray.gui</groupId>
+            <artifactId>vexelray-gui-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dev.vexelray.framework</groupId>
+            <artifactId>vexelray-framework-api</artifactId>
+        </dependency>
+    </dependencies>
+</project>

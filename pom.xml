@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>dev.vexelray.game</groupId>
+    <artifactId>vexelray-game-engine</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <name>vexelray-game-engine</name>
+    <description>
+        A game engine on the VexelRay stack, whose worlds are drawn as much with fractals as with meshes. The world is a
+        list of techniques, so it runs in a pane of a vexelray-gui application as readily as in a window of its own,
+        and a vexelray-gui overlay is drawn over a game as readily as beside one. docs/architecture.md is the plan.
+    </description>
+
+    <modules>
+        <!-- The world as data: what is in it, the step as messages, the clocks. No engine, no window, no device. -->
+        <module>vexelray-game-core</module>
+        <!-- The 3D host for shadelets: the world's uber shader, its roles and injection points, as the canvas has its
+             own. -->
+        <module>vexelray-game-shadelets</module>
+        <!-- Fractals as shadelets: distance estimators, orbit traps, fractal detail on surfaces, and the CPU twin the
+             game asks where a fractal is. The headline. -->
+        <module>vexelray-game-fractal</module>
+        <!-- The world drawn: the techniques that march the fields and raster the meshes into one depth. Host-agnostic:
+             it knows neither a pane nor a window. -->
+        <module>vexelray-game-render</module>
+        <!-- A game in a vexelray-gui application: the world's techniques in a TechniquePane, its camera through the
+             view's @Draw. -->
+        <module>vexelray-game-pane</module>
+        <!-- A game in a window of its own: the world's techniques full-window, with a vexelray-gui overlay drawn as the
+             last technique. -->
+        <module>vexelray-game-window</module>
+    </modules>
+
+    <properties>
+        <maven.compiler.release>25</maven.compiler.release>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <!-- The stack, installed to the local .m2 from the sibling checkouts. -->
+        <supirvast.version>0.2.4-SNAPSHOT</supirvast.version>
+        <vexelray.version>0.2.1-SNAPSHOT</vexelray.version>
+        <vexelray.fields.version>0.2.1-SNAPSHOT</vexelray.fields.version>
+        <vexelray.gui.version>0.2.1-SNAPSHOT</vexelray.gui.version>
+        <vexelray.framework.version>0.2.1-SNAPSHOT</vexelray.framework.version>
+        <kronometer.version>1.4-SNAPSHOT</kronometer.version>
+        <atchung.version>1.5-SNAPSHOT</atchung.version>
+
+        <junit.version>5.11.4</junit.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- This repository's own modules: children reference these without a version. -->
+            <dependency>
+                <groupId>dev.vexelray.game</groupId>
+                <artifactId>vexelray-game-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dev.vexelray.game</groupId>
+                <artifactId>vexelray-game-shadelets</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dev.vexelray.game</groupId>
+                <artifactId>vexelray-game-fractal</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dev.vexelray.game</groupId>
+                <artifactId>vexelray-game-render</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dev.vexelray.game</groupId>
+                <artifactId>vexelray-game-pane</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dev.vexelray.game</groupId>
+                <artifactId>vexelray-game-window</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <!-- Time: the world's fixed step, the display's rate, slow motion as a dilated tempo. -->
+            <dependency>
+                <groupId>sibarum.kronometer</groupId>
+                <artifactId>kronometer-core</artifactId>
+                <version>${kronometer.version}</version>
+            </dependency>
+            <!-- Messages between lanes: topics, senders, inboxes. -->
+            <dependency>
+                <groupId>sibarum.atchung</groupId>
+                <artifactId>atchung-core</artifactId>
+                <version>${atchung.version}</version>
+            </dependency>
+
+            <!-- SupirVast's pure-Java IR: every shadelet is written in it, and runs on the GPU and the CPU alike. -->
+            <dependency>
+                <groupId>dev.supirvast</groupId>
+                <artifactId>vastir</artifactId>
+                <version>${supirvast.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dev.supirvast</groupId>
+                <artifactId>vastir-pbr</artifactId>
+                <version>${supirvast.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dev.supirvast</groupId>
+                <artifactId>vast</artifactId>
+                <version>${supirvast.version}</version>
+            </dependency>
+
+            <!-- The engine: surfaces compiled to marchable fields, shading, and the techniques that draw them. -->
+            <dependency>
+                <groupId>dev.vexelray</groupId>
+                <artifactId>vexelray-surface</artifactId>
+                <version>${vexelray.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dev.vexelray</groupId>
+                <artifactId>vexelray-shader</artifactId>
+                <version>${vexelray.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dev.vexelray</groupId>
+                <artifactId>vexelray-canvas</artifactId>
+                <version>${vexelray.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dev.vexelray</groupId>
+                <artifactId>vexelray-shadelet-codegen</artifactId>
+                <version>${vexelray.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dev.vexelray</groupId>
+                <artifactId>vexelray-engine-api</artifactId>
+                <version>${vexelray.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dev.vexelray</groupId>
+                <artifactId>vexelray-engine</artifactId>
+                <version>${vexelray.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dev.vexelray</groupId>
+                <artifactId>vexelray-technique-sdf</artifactId>
+                <version>${vexelray.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dev.vexelray</groupId>
+                <artifactId>vexelray-technique-mesh</artifactId>
+                <version>${vexelray.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dev.vexelray</groupId>
+                <artifactId>vexelray-technique-canvas</artifactId>
+                <version>${vexelray.version}</version>
+            </dependency>
+            <!-- Fractal coverage on a box grid, prefiltered: the level of detail a fractal is drawn at. -->
+            <dependency>
+                <groupId>dev.vexelray.fields</groupId>
+                <artifactId>vexelray-fields-fractal</artifactId>
+                <version>${vexelray.fields.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>dev.vexelray.gui</groupId>
+                <artifactId>vexelray-gui-core</artifactId>
+                <version>${vexelray.gui.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dev.vexelray.gui</groupId>
+                <artifactId>vexelray-gui-widget</artifactId>
+                <version>${vexelray.gui.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dev.vexelray.framework</groupId>
+                <artifactId>vexelray-framework-api</artifactId>
+                <version>${vexelray.framework.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dev.vexelray.framework</groupId>
+                <artifactId>vexelray-framework-processor</artifactId>
+                <version>${vexelray.framework.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.junit</groupId>
+                <artifactId>junit-bom</artifactId>
+                <version>${junit.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- identify stamps each module with the source it was built from; isolate keeps platform-specific code in
+                 -windows, -linux and -macos modules (vexelray-build/README.md). -->
+            <plugin>
+                <groupId>dev.vexelray.build</groupId>
+                <artifactId>vexelray-build-maven-plugin</artifactId>
+                <version>0.2.1-SNAPSHOT</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>identify</goal>
+                            <goal>isolate</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.13.0</version>
+                    <!-- Explicit release on the plugin as well as the property, so IDEs pick up the Java 25
+                         language level reliably. Same as the sibling repos. -->
+                    <configuration>
+                        <target>${maven.compiler.release}</target>
+                        <release>${maven.compiler.release}</release>
+                        <compilerArgs>
+                            <arg>-Xdoclint:reference,syntax</arg>
+                        </compilerArgs>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>3.5.2</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+
+    <profiles>
+        <!-- On Linux the build goes to target-linux/, not target/: the Windows host and a Linux VM build the same checkout
+             (a shared folder), and each keeps its own output beside the other's instead of overwriting it. -->
+        <profile>
+            <id>linux-build-output</id>
+            <activation>
+                <os>
+                    <family>unix</family>
+                    <name>linux</name>
+                </os>
+            </activation>
+            <build>
+                <directory>${project.basedir}/target-linux</directory>
+            </build>
+        </profile>
+    </profiles>
+</project>

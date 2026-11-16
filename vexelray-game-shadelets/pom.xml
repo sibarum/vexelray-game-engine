@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>dev.vexelray.game</groupId>
+        <artifactId>vexelray-game-engine</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>vexelray-game-shadelets</artifactId>
+
+    <description>
+        The 3D host for shadelets: the world's uber shader, its roles (source, modifier, material, light, composite) and
+        its injection points, composed once per game as the canvas's is per application. Written in SupirVast IR, so every
+        role runs on the CPU as well, for the tests that hold the two to agree.
+    </description>
+
+    <dependencies>
+        <dependency>
+            <groupId>dev.supirvast</groupId>
+            <artifactId>vastir</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dev.vexelray</groupId>
+            <artifactId>vexelray-surface</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dev.vexelray</groupId>
+            <artifactId>vexelray-shader</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dev.supirvast</groupId>
+            <artifactId>vast</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>dev.vexelray.game</groupId>
+        <artifactId>vexelray-game-engine</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>vexelray-game-render</artifactId>
+
+    <description>
+        The world drawn: the techniques that march the fields and raster the meshes into one depth, the camera and the
+        lights. Host-agnostic: it knows neither a pane nor a window, only RenderTechnique and what a technique binds.
+    </description>
+
+    <dependencies>
+        <dependency>
+            <groupId>dev.vexelray.game</groupId>
+            <artifactId>vexelray-game-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dev.vexelray.game</groupId>
+            <artifactId>vexelray-game-shadelets</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dev.vexelray</groupId>
+            <artifactId>vexelray-engine-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dev.vexelray</groupId>
+            <artifactId>vexelray-technique-sdf</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dev.vexelray</groupId>
+            <artifactId>vexelray-technique-mesh</artifactId>
+        </dependency>
+    </dependencies>
+</project>
