@@ -24,6 +24,10 @@
         </dependency>
         <dependency>
             <groupId>dev.vexelray.game</groupId>
+            <artifactId>vexelray-game-scene</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dev.vexelray.game</groupId>
             <artifactId>vexelray-game-shadelets</artifactId>
         </dependency>
         <dependency>

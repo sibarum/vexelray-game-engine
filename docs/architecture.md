@@ -1,6 +1,6 @@
 # Architecture
 
-Status: **Proposed 2026-11-15.** The modules exist and are empty. This is the plan for what goes in them, in what
+Status: **Proposed 2026-11-15**, revised 2026-11-16 (what is declared and what is loaded). The modules exist and are empty. This is the plan for what goes in them, in what
 order, and what each needs from the rest of the stack. Nothing here is decided until it is built or ruled; the open
 questions are at the end.
 
@@ -15,19 +15,23 @@ The author's, 2026-11-15:
   wiring, kronometer for clocks running at different rates, and lanes that talk only through mailboxes.
 - **The headline is fractals:** how they are worked into the visuals and the 3D art, not bolted on as a special
   effect.
+- *Added 2026-11-16:* **a game is not shaped like a GUI application.** The framework wants every interactive part
+  declared at compile time and listening by the first frame. A game wants the opposite for its content: scenes,
+  progressive loading, things that appear and go while it runs.
 
 ## Where this sits
 
 | Module | What it is | Depends on |
 | --- | --- | --- |
 | `vexelray-game-core` | The world as data: what is in it, a step as messages, the clocks. No device, no window | kronometer, atchung |
+| `vexelray-game-scene` | What the world holds, loaded at run time: scenes, regions, residency, the loader's budgets. No device | game-core |
 | `vexelray-game-shadelets` | The 3D host for shadelets: the world's uber shader, its roles and injection points | vastir, vexelray-surface, vexelray-shader |
 | `vexelray-game-fractal` | Fractals as shadelets, their level of detail, and their CPU twin | game-shadelets, vexelray-fields-fractal |
-| `vexelray-game-render` | The world drawn, as `RenderTechnique`s. Knows neither a pane nor a window | game-core, game-shadelets, technique-sdf, technique-mesh |
+| `vexelray-game-render` | The world drawn, as `RenderTechnique`s. Knows neither a pane nor a window | game-core, game-scene, game-shadelets, technique-sdf, technique-mesh |
 | `vexelray-game-pane` | A game in a vexelray-gui application | game-render, vexelray-gui, framework-api |
 | `vexelray-game-window` | A game in a window of its own, with a vexelray-gui overlay | game-render, technique-canvas, vexelray-gui, framework-api |
 
-Dependencies point downward only. **`-core` and `-shadelets` never see a device**, so a world can be stepped, saved
+Dependencies point downward only. **`-core`, `-scene` and `-shadelets` never see a device**, so a world can be stepped, saved
 and judged in a test with no GPU, and every shadelet runs on the CPU. **`-render` never sees a host**: the two hosts are
 thin, and anything both need is in `-render` or below.
 
@@ -39,6 +43,53 @@ Modules that will come, and are not made until there is code for them:
 | `vexelray-game-audio` | A mixer on vexelray-audio, its voices on the world's clock |
 | `vexelray-game-assets` | Fractals, meshes and materials as files: a record of parameters, not a bake |
 | `vexelray-game-demo` | The first game, in both hosts, behind a `demos` profile until it builds |
+
+## What is declared, and what is loaded
+
+The framework's static rules are right for what they govern, and what they govern is the game's **machinery**, not
+its **content**. The line between the two is the design.
+
+| Declared at compile time (the framework's) | Loaded at run time (the world's) |
+| --- | --- |
+| The lanes: the world's, the loader's jobs, sources, the GUI | Scenes, and the regions a scene is cut into |
+| The topics between them: input, a step finished, a region loaded, a scene changed | Entities, as many as the scene holds, made and destroyed as it runs |
+| The services: the lent `DeviceQueue`, the feeds, settings | Meshes, textures, sounds, a fractal's parameters |
+| The overlay's screens: menus, HUD, inventory, settings, debug panels | Behaviours, and the events entities send each other |
+| The shadelet composition the game ships | Compositions a scene or a mod adds (open question 9) |
+
+So **an entity is never a framework component.** It has no mailbox of the framework's, no lane and no topic. It is
+data inside the world, which is one component on one lane, and the world runs its own dispatch for what entities say
+to each other, in order, within its step. The framework sees one part that hears "a region is loaded" and publishes
+"a step is finished"; how many things live inside it is the world's business and changes every frame.
+
+The framework's guarantees still hold for that one part, and they are the ones a game wants: the world's step never
+blocks (loading is a job), nothing outside the world holds its state (a snapshot crosses, never the world), and a
+wedged world is reported by name while the overlay keeps painting.
+
+### Progressive loading (game-scene)
+
+`game-scene` decides **what should be resident, at what detail, and when**; it loads nothing itself.
+
+- **A scene is cut into regions** (cells of a grid, portals between rooms, or both), each with a bound and the assets
+  it needs at each level of detail.
+- **Each region moves through residency states**: absent, wanted, loading, resident on the CPU, resident on the GPU,
+  evicting. The world asks for what it needs by position, velocity and look direction, ahead of the camera, and the
+  scene ranks the requests against budgets: memory on each side, bytes uploaded per frame, jobs in flight.
+- **Loading is a `@Job`** (T5.8): disk and decode on the job lane, the reply a message the world hears at its next
+  tick. Upload is a `@Source` holding a lent `DeviceQueue` writing a device feed, so the GUI thread copies nothing.
+  A region is drawn only once its slot has landed (device-feed.md's rule), so nothing pops in half-made: a region
+  not landed is drawn at the detail it had, or not yet.
+- **A scene change is a swap, not a stop.** The next scene loads while the current one runs, behind a loading screen
+  that is an ordinary overlay view, and the world switches in one step once enough of it is resident.
+- **Fractals make this cheap.** A fractal is parameters, a few dozen floats, so a fractal region is resident the step
+  it is wanted, drawn first at few iterations and refined as the footprint asks. What streams is what is not
+  procedural: meshes, textures, sounds, a shell's baked far texture. A world built mostly of fractals loads mostly
+  for free, and that is an argument for building it that way.
+
+**What the framework does not give yet** (docs/TODO.md): loaded data is arrays, and an array may not cross a lane
+(T2.4 allows primitives, records and immutable collections, not `float[]`). A mesh sent from a loading job to the world
+needs a deeply immutable bulk type, or a handle the framework treats as shareable as it treats a feed. That is a
+framework change, argued there.
 
 ## Two hosts, one world
 
@@ -104,8 +155,10 @@ As on the canvas:
 - **No function values, so a generated dispatcher**, `distanceAt(id, p)`, over the shadelets the game composed. The
   world's distance is that dispatcher over the objects a ray may meet, culled by their bounds first (`Bounds`, `Cones`
   in `vexelray-surface`).
-- **A composition is the game's, once.** A game names its shadelets as an application names `DemoShader`; one not
-  compiled in is dropped and reported (`Diagnostics.dropped`), not lowered at startup by surprise.
+- **A composition is the game's, and a scene may add to it.** A game names the shadelets it ships with, as an
+  application names `DemoShader`, and those are compiled at build time. Content is mostly parameters, so most scenes
+  need nothing more. A scene or a mod that brings a shadelet the game did not ship has it lowered by a loading job
+  (`Shaders.loadOrLower`) and its pipeline made before the scene is swapped in, never in a frame (open question 9).
 
 **Meshes share the material and light roles.** A rasterised mesh's fragment shader is the same composition from
 *material* on, given the point and normal the rasteriser found. So a mesh can wear a fractal material, and a fractal
@@ -153,8 +206,12 @@ The framework's rules (`vexelray-framework/docs/threading.md`, T1 to T7) are the
 invents a thread.
 
 - **The world is a `@Component` on a lane of its own** (`lane = "world"`), stepped by a fixed rate. It hears input,
-  and its own and other parts' messages, as messages, and publishes each finished step as a deeply immutable snapshot
-  on a state topic. It holds no device and draws nothing.
+  loaded regions and other parts' messages as messages, and publishes each finished step as a deeply immutable
+  snapshot on a state topic. It holds no device and draws nothing. Everything in it, entities and their events
+  included, is its own data (*What is declared, and what is loaded*).
+- **One lane is one core.** A world of many entities wants its systems run in parallel, and the lanes are a closed
+  list (T1.1). The heavy, uniform work (particles, crowds, animation) goes to the GPU through vast, as the
+  simulations' does; what is left on the CPU is open question 8.
 - **The view chooses.** The pane's (or window's) `@View` runs on the GUI thread inside the frame: its `@Draw` takes the
   snapshot due, blends it with the one before by the clock's phase, and sets the camera and per-frame numbers for the
   techniques. It decides nothing about the world.
@@ -175,7 +232,9 @@ invents a thread.
 | the overlay | the GUI's | `vexelray-gui-krono`, as any application's |
 
 Components never touch kronometer's cells (T3.2): a step reaches a component as a message, and what it changes
-returns through `KronBridge`.
+returns through `KronBridge`. Timers inside the world (a door that closes in three seconds, a fractal that unfolds
+over a minute) are made and dropped at run time with the entities that own them, so they cannot be the framework's.
+They are a kronometer driven by the world's step, `Kron.driven()`, private to the world lane (open question 10).
 
 **Input** in the pane is the GUI's (`Seams`); in a window of its own it is still the GUI's under plan (1). Controllers
 come through tactroller.
@@ -184,8 +243,9 @@ come through tactroller.
 
 Each step ends in a test or a picture. The first two need no device.
 
-1. **game-core: a world that steps headless.** Entities as records, a step as messages, the world lane on a fixed
-   kronometer rate, snapshots published. A test steps it and reads them.
+1. **game-core: a world that steps headless.** Entities as data made and destroyed while it runs, their events
+   dispatched inside the step, the world lane on a fixed kronometer rate, snapshots published. A test steps it and
+   reads them.
 2. **game-shadelets: the 3D roles on the CPU.** Source, modifier, material, light, composite as vastir functions; one
    composition; the generated dispatcher; agreement of a sphere and a box on the CPU.
 3. **game-fractal: one fractal, both ways.** A Menger sponge and a Mandelbulb as sources, with step factors and an
@@ -196,9 +256,12 @@ Each step ends in a test or a picture. The first two need no device.
    a mesh, `ClipDepth` agreeing.
 6. **game-window (plan 1): a game with an overlay.** A full-bleed pane, a HUD and a menu over it, driven by
    `ottermate`.
-7. **Level of detail and motion.** Footprint-driven iterations, a shell's far texture baked by a job, a fractal whose
+7. **game-scene: a world bigger than memory.** Regions, residency and budgets, judged headless first: a camera flown
+   through a scene in a test, asserting what was resident when, and that the budgets held. Then on the device, with
+   loading jobs, the upload source and a scene swap behind a loading screen.
+8. **Level of detail and motion.** Footprint-driven iterations, a shell's far texture baked by a job, a fractal whose
    parameters move on its own clock.
-8. **The physics bridge**, once vexelray-sim-physics' boundary contract exists.
+9. **The physics bridge**, once vexelray-sim-physics' boundary contract exists.
 
 ## Open questions
 
@@ -215,3 +278,13 @@ Each step ends in a test or a picture. The first two need no device.
 6. **Precision at depth.** A floating origin per region is cheap; a fractal zoomed past single precision needs more
    (perturbation, doubles on the CPU feeding the GPU), and it is not settled how much the engine promises.
 7. **Shell far textures.** Baked at load by a job, baked offline into an asset, or rendered on demand into an atlas.
+8. **Parallelism inside the world.** The GPU takes the uniform work. For what stays on the CPU: one world lane and
+   accept it, several world lanes each owning a part of the world (regions) and meeting at the round's end as declared
+   lanes already do, or a worker pool for data-parallel systems, which T1.1 calls a design change to argue in
+   vexelray-framework's architecture.md. Regions as lanes fits the framework best, but the count of regions is the
+   world's and changes as it runs, and the count of lanes is fixed at compile time.
+9. **Shadelets a scene brings.** Whether a game may load a shadelet it did not ship (mods, downloaded content), or the
+   shipped composition is final and content is only parameters. The first costs a lowering and a pipeline per new
+   shadelet at load, and a composition that changes as the game runs.
+10. **Clocks inside the world.** Whether a private, step-driven `Kron` on the world lane is within T3.2's reading, or
+    the world keeps its own timer wheel and kronometer is only the framework's.

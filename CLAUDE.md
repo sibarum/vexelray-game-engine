@@ -6,8 +6,11 @@ fills them.
 
 **The layering is the design; keep it.**
 
-- `vexelray-game-core` and `vexelray-game-shadelets` never depend on a device, a window or a GUI. A world steps and a
-  shadelet runs in a plain JUnit test.
+- `vexelray-game-core`, `vexelray-game-scene` and `vexelray-game-shadelets` never depend on a device, a window or a
+  GUI. A world steps, a scene streams and a shadelet runs in a plain JUnit test.
+- **The framework declares the machinery; the world holds the content.** Lanes, topics, services and the overlay's
+  screens are framework parts, declared at compile time. Scenes, entities, assets and their events are the world's
+  data, loaded at run time. Never make an entity, a region or a loaded thing a `@Component` or give it a topic.
 - `vexelray-game-render` never depends on a host (`-pane`, `-window`, vexelray-gui). Anything both hosts need goes in
   `-render` or below, never in both hosts.
 - A shadelet is pure vastir IR, so it runs on the CPU as well. A fractal's CPU twin and its GPU form are the same

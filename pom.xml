@@ -19,6 +19,8 @@
     <modules>
         <!-- The world as data: what is in it, the step as messages, the clocks. No engine, no window, no device. -->
         <module>vexelray-game-core</module>
+        <!-- What the world holds, loaded at run time: scenes, regions, residency, the loader's budgets. No device. -->
+        <module>vexelray-game-scene</module>
         <!-- The 3D host for shadelets: the world's uber shader, its roles and injection points, as the canvas has its
              own. -->
         <module>vexelray-game-shadelets</module>
@@ -58,6 +60,11 @@
             <dependency>
                 <groupId>dev.vexelray.game</groupId>
                 <artifactId>vexelray-game-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dev.vexelray.game</groupId>
+                <artifactId>vexelray-game-scene</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
